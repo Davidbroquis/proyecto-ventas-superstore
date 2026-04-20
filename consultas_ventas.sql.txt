@@ -1,0 +1,95 @@
+-- ================================================================
+-- PROYECTO 3: Analisis de Ventas y Comercio - Superstore USA
+-- FUENTE: Kaggle - Superstore Sales Dataset
+-- AUTOR: Luis David Broquis
+-- FECHA: Abril 2026
+-- HERRAMIENTA: MySQL Workbench
+-- ================================================================
+
+-- ── PREPARACION ──────────────────────────────────────────────────
+
+CREATE DATABASE IF NOT EXISTS portafolio_ventas;
+USE portafolio_ventas;
+
+-- Verificar estructura de la tabla
+DESCRIBE ventas;
+
+-- Total de registros
+SELECT COUNT(*) AS total_registros FROM ventas;
+
+-- ── PREGUNTA 1 ───────────────────────────────────────────────────
+-- ?Que categoria de producto genera mas ventas totales?
+-- Resultado: Furniture lidera con $5,428,811
+-- Hallazgo: A pesar de tener menos registros que Office Supplies,
+-- Furniture lidera porque sus productos tienen mayor valor unitario
+-- ----------------------------------------------------------------
+SELECT
+    Categoria,
+    SUM(Ventas) AS ventas_totales
+FROM ventas
+GROUP BY Categoria
+ORDER BY ventas_totales DESC;
+
+-- ── PREGUNTA 2 ───────────────────────────────────────────────────
+-- ?Que categoria genera mas ventas promedio por orden?
+-- Resultado: Furniture $2,612 - Technology $1,772 - Office Supplies $424
+-- Hallazgo: Office Supplies tiene muchos productos baratos de bajo
+-- valor unitario. Furniture es la mas rentable por transaccion
+-- ----------------------------------------------------------------
+SELECT
+    Categoria,
+    AVG(Ventas) AS promedio
+FROM ventas
+GROUP BY Categoria
+ORDER BY promedio DESC;
+
+-- ── PREGUNTA 3 ───────────────────────────────────────────────────
+-- ?Que region esta rindiendo por debajo en ventas?
+-- Resultado: South $1,512,981 - East $2,877,500
+--            Central $3,155,008 - West $3,602,157
+-- Hallazgo: South tiene menos productos registrados (1598 vs 3140
+-- de West) lo que limita su volumen de ventas
+-- ----------------------------------------------------------------
+SELECT
+    Region,
+    SUM(Ventas) AS total
+FROM ventas
+GROUP BY Region
+ORDER BY total ASC;
+
+-- ── PREGUNTA 4 ───────────────────────────────────────────────────
+-- ?En que mes las ventas han caido historicamente?
+-- Resultado: Febrero es el mes mas bajo con $193,833
+--            Noviembre y Diciembre son los mas altos
+-- Hallazgo: Patron estacional claro - pico en temporada de fin
+-- de año y caida fuerte en los primeros meses del año
+-- ----------------------------------------------------------------
+SELECT
+    MONTH(STR_TO_DATE(Fecha_Orden, '%d/%m/%Y')) AS mes,
+    SUM(Ventas) AS total
+FROM ventas
+GROUP BY mes
+ORDER BY mes ASC;
+
+-- ── PREGUNTA 5 ───────────────────────────────────────────────────
+-- ?Que segmento de cliente gasta mas por compra?
+-- Resultado: Consumer $1,162 - Corporate $1,116 - Home Office $1,099
+-- Hallazgo: Los tres segmentos son muy parejos en promedio pero
+-- Consumer llega ahi por volumen alto (5101 productos) mientras
+-- Corporate y Home Office con menos volumen generan el mismo
+-- promedio - son segmentos mas eficientes para campañas de alto valor
+-- ----------------------------------------------------------------
+SELECT
+    Segmento,
+    AVG(Ventas) AS promedio
+FROM ventas
+GROUP BY Segmento
+ORDER BY promedio DESC;
+
+-- Consulta adicional para investigar el Nivel 2 de la escalera
+SELECT
+    Segmento,
+    COUNT(Nombre_Producto) AS total
+FROM ventas
+GROUP BY Segmento
+ORDER BY total DESC;
